@@ -1,3 +1,5 @@
+-- local logger = require('cmd-window.logger')
+
 local cache = {}
 cache.history = {}
 
@@ -22,7 +24,7 @@ M.command_history = function(text)
 
   cache.history = {}
 
-  for i = #history_list, 3, -1 do
+  for i = 3, #history_list do
     local item = history_list[i]
 
     if text == nil or text == '' then
@@ -34,25 +36,20 @@ M.command_history = function(text)
   return cache.history
 end
 
-M.get_most_recent = function()
-  local recent_history = {}
+---@return string[]
+function M.get_history()
+  local cmds = {}
 
-  -- Populate the chache if empty
   if #cache.history == 0 then
     M.command_history()
   end
 
-  for i = 1, 10 do
-    recent_history[i] = cache.history[i]
+  for i = 1, #cache.history do
+    cmds[i] = cache.history[i]['cmd']
   end
 
-  return recent_history
-end
-
-function M.cache_history()
-  if #cache.history == 0 then
-    M.command_history()
-  end
+  cmds[#cache.history + 1] = ''
+  return cmds
 end
 
 return M

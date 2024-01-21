@@ -1,3 +1,6 @@
+local Config = require('cmd-window.config')
+local debug = Config.get_default_config().opts.debug
+
 local function remove_duplicate_whitespace(str)
   return str:gsub('%s+', ' ')
 end
@@ -103,7 +106,6 @@ function Logger:show()
         vertical resize 80
         wincmd h
     ]])
-        -- require('harpoon'):list('relative'):select(1)
         require('harpoon.ui').nav_file(1)
       end)
     end
@@ -117,26 +119,15 @@ function Logger:show()
   end
 end
 
-_G.log = function(msg)
-  if type(msg) ~= 'string' then
-    msg = vim.inspect(msg)
-  end
-  require('plugins.local_plugs.logger'):log(msg)
-end
-
 vim.api.nvim_create_autocmd('VimEnter', {
   callback = function()
-    if os.getenv('DEBUG') == '1' then
-      vim.cmd('Log')
-      log('Debug enabled')
-      log('')
+    if debug then
+      vim.schedule(function()
+        local logger = require('cmd-window.logger')
+        logger:show()
+      end)
     end
   end,
 })
-
-vim.api.nvim_create_user_command('Log', function()
-  local logger = require('plugins.local_plugs.logger')
-  logger:show()
-end, {})
 
 return Logger:new()

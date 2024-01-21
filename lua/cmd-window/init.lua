@@ -1,2 +1,17 @@
-local history = require('cmd-window.history')
-log(history.get_most_recent())
+local ui = require('cmd-window.ui')
+local logger = require('cmd-window.logger')
+local Config = require('cmd-window.config')
+
+local M = {}
+
+---@param opts? PartialConfig
+function M.setup(opts)
+  M.config = Config.merge_config(opts)
+  logger:log(M.config)
+end
+
+function M.open()
+  ui.open(M.config.win_opts)
+end
+
+return M
