@@ -7,11 +7,11 @@ function M.get_default_config()
       debug = true,
     },
     win_opts = {
-      title = 'hello',
-      title_pos = 'right',
+      title = 'title',
+      title_pos = 'center',
       relative = 'editor',
       border = 'rounded',
-      width = 100,
+      width = 140,
       height = 10,
     },
   }
