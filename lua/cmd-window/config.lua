@@ -7,12 +7,12 @@ function M.get_default_config()
       debug = true,
     },
     win_opts = {
-      title = 'title',
+      title = ' title ',
       title_pos = 'center',
       relative = 'editor',
       border = 'rounded',
       width = 140,
-      height = 10,
+      height = 20,
     },
   }
 end

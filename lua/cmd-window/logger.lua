@@ -1,6 +1,3 @@
-local Config = require('cmd-window.config')
-local debug = Config.get_default_config().opts.debug
-
 local function remove_duplicate_whitespace(str)
   return str:gsub('%s+', ' ')
 end
@@ -62,6 +59,9 @@ function Logger:log(...)
     if type(item) == 'table' then
       item = vim.inspect(item)
     end
+    if type(item) == 'boolean' then
+      item = tostring(item)
+    end
     table.insert(processed, item)
   end
 
@@ -118,16 +118,5 @@ function Logger:show()
     vim.bo[self.bufnr].ft = 'logger'
   end
 end
-
-vim.api.nvim_create_autocmd('VimEnter', {
-  callback = function()
-    if debug then
-      vim.schedule(function()
-        local logger = require('cmd-window.logger')
-        logger:show()
-      end)
-    end
-  end,
-})
 
 return Logger:new()
