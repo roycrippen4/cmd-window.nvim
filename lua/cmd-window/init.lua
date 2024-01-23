@@ -15,10 +15,9 @@ function M.setup(opts)
   end
 end
 
----@param history_type HistoryType
-function M.open(history_type)
-  ui._open(M.config.win_opts, history_type)
-  logger:log(history_type, ' window opened')
+---@param kind Kind
+function M.open_window(kind)
+  ui._create_window(M.config.win_opts, kind)
 end
 
 return M

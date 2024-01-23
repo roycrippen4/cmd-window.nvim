@@ -1,34 +1,24 @@
 local logger = require('cmd-window.logger')
-local history = require('cmd-window.history')
-
---- ┌──────────────────────────────────────┐
---- │                Title                 │
---- │┌────────────────────────────────────┐│
---- ││                                    ││
---- ││                                    ││
---- ││               Results              ││
---- ││                                    ││
---- ││                                    ││
---- │└────────────────────────────────────┘│
---- └──────────────────────────────────────┘
--- borderchars =  { '─', '│', '─', '│', '╭', '╮', '╯', '╰' }
--- borderchars = { '', '', '', '', '', '', '', '' },
+local data = require('cmd-window.data')
+local map = vim.keymap.set
+local map_opts = { buffer = 0, silent = true }
+local get_lines = vim.api.nvim_buf_get_lines
+local feedkeys = vim.fn.feedkeys
 
 ---@class UI
 local ui = {}
 
 ---@param win_id integer
-local set_cursor = function(win_id)
-  vim.api.nvim_win_set_cursor(win_id, { vim.fn.line('$'), 0 })
-end
-
-local get_current_buf = vim.api.nvim_get_current_buf
-
----@param win_id integer
 ---@param bufnr integer
-local function apply_settings(win_id, bufnr)
-  vim.wo[win_id].number = true
+---@param kind Kind
+local function apply_settings(win_id, bufnr, kind)
+  if not string.find(kind, 'normal') then
+    vim.wo[win_id].number = true
+  else
+    vim.cmd('set nonumber')
+  end
   vim.bo[bufnr].filetype = 'vim'
+  vim.api.nvim_win_set_cursor(ui.win_id, { vim.fn.line('$'), 0 })
   vim.cmd('normal A')
   vim.cmd('startinsert')
 end
@@ -38,27 +28,26 @@ local function create_highlights()
   vim.api.nvim_set_hl(0, 'CmdWindowTitle', { fg = '#000000', bg = '#FF00FF' })
 end
 
-local function set_keymaps()
-  vim.keymap.set('n', 'q', function()
-    ui._close()
-  end, { buffer = 0, silent = true })
-
-  vim.keymap.set('n', '<Esc>', function()
-    ui._close()
-  end, { buffer = 0, silent = true })
-
-  vim.keymap.set('n', '<CR>', function()
-    ui._select()
-  end, { buffer = 0, silent = true })
-end
-
 ---@param win_opts WinOpts
----@param type HistoryType
-function ui._create_window(win_opts, type)
-  local contents = history.get_list(type)
+---@param kind Kind
+function ui._create_window(win_opts, kind)
+  local title = ''
+  local contents = { '' }
+
+  if kind ~= 'normal_cmd' and kind ~= 'normal_search' then
+    contents = data.display_history_data(kind)
+    title = kind .. ' history'
+  else
+    title = ''
+  end
+  -- vim.api.nvim_exec_autocmds(
+  --   'CmdwinLeave',
+  --   { group = 'CmdWindow', pattern = 'CmdWindow', data = 'exiting' }
+  -- )
+
   ui.win_id = require('plenary.popup').create(contents, {
     relative = win_opts.relative,
-    title = win_opts.title,
+    title = title,
     title_pos = win_opts.title_pos,
     focusable = true,
     row = math.floor(((vim.o.lines - win_opts.height) / 2) - 1),
@@ -73,11 +62,22 @@ function ui._create_window(win_opts, type)
     titlehighlight = 'CmdWindowTitle',
   })
 
-  ui.bufnr = get_current_buf()
-  set_keymaps()
-  set_cursor(ui.win_id)
-  apply_settings(ui.win_id, ui.bufnr) -- enables line numbering
+  map('n', 'q', function()
+    ui._close()
+  end, map_opts)
+
+  map({ 'n', 'i' }, '<Esc>', function()
+    ui._close()
+  end, map_opts)
+
+  map({ 'n', 'i' }, '<CR>', function()
+    ui._select(kind)
+  end, map_opts)
+
+  ui.bufnr = vim.api.nvim_get_current_buf()
+  apply_settings(ui.win_id, ui.bufnr, kind)
   create_highlights()
+  vim.api.nvim_exec_autocmds('CmdlineEnter', { pattern = 'CmdWindow', data = 'entering' })
 end
 
 function ui._close()
@@ -88,23 +88,27 @@ function ui._close()
   if ui.win_id ~= nil and vim.api.nvim_win_is_valid(ui.win_id) then
     vim.api.nvim_win_close(ui.win_id, true)
   end
-end
 
----@param win_opts WinOpts
----@param type HistoryType
-function ui._open(win_opts, type)
-  ui._create_window(win_opts, type)
+  vim.cmd('stopinsert')
 end
 
 --- Executes the line the cursor is on.
-function ui._select()
+--- @param kind Kind
+function ui._select(kind)
   local line = vim.fn.line('.')
-  if not line then
-    error('Unable to find the current line')
-  end
-  local command = vim.api.nvim_buf_get_lines(ui.bufnr, line - 1, line, false)
+  ---@diagnostic disable-next-line
+  local command = get_lines(ui.bufnr, line - 1, line, false)[1]
+
   ui._close()
-  vim.cmd(command[1])
+
+  logger:log(command)
+  if kind == 'search' or kind == 'normal_search' then
+    vim.cmd('let @/=' .. '"' .. command .. '"')
+    feedkeys('n', 'n')
+    return
+  end
+
+  vim.cmd(command)
 end
 
 return ui

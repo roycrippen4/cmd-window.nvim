@@ -1,10 +1,10 @@
 ---@alias title_pos "left"|"center"|"right".
 ---@alias border "none"|"single"|"double"|"rounded"|"solid"|"shadow"
 ---@alias relative "editor"|"win"|"cursor"|"mouse"
----@alias HistoryType 'command'|'search'
+---@alias DataType 'command'|'search'
+---@alias Kind 'command'|'search'|'normal_cmd'|'normal_search'
 
 ---@class WinOpts
----@field title? string Title value passed to nvim_open_win
 ---@field title_pos? title_pos Title position value passed to nvim_open_win
 ---@field relative? relative Where to open the window. Passed into nvim_open_win
 ---@field border? border Border value passed to nvim_open_win
@@ -21,13 +21,21 @@
 ---@field win_opts? WinOpts
 ---@field opts? table|nil
 
----@class Opts table
+---@class Opts
 ---@field debug? boolean
 
 ---@class CmdWindowOptions
 ---@field win_opts WinOpts
 ---@field opts Opts
 
----@class HistoryItem
+---@class DataItem
 ---@field cmd string
 ---@field id integer
+
+---@class item
+---@field id integer
+---@field cmd string
+
+---@class Data
+---@field command item[]
+---@field search item[]

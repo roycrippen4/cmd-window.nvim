@@ -12,23 +12,37 @@ M = {}
 --- We also open our window.
 ---@param win_opts WinOpts
 function M.start_autocmds(win_opts)
-  -- logger:log('autocmds started')
   autocmd('CmdwinEnter', {
     group = group,
     callback = function(args)
       -- Close the default command window
       vim.cmd(':q')
 
-      -- args.file will tell us what the type should be.
-      -- hard coded to command history for now, it's the only thing implemented
-
       -- Must delay a bit to avoid error.
       vim.schedule(function()
-        logger:log(args)
-        ui._open(win_opts, 'command')
+        if args.file == '?' or args.file == '/' then
+          ui._create_window(win_opts, 'search')
+        else
+          ui._create_window(win_opts, 'command')
+        end
       end)
     end,
   })
+
+  -- autocmd('CmdlineEnter', {
+  --   group = group,
+  --   pattern = 'CmdWindow',
+  --   callback = function(args)
+  --     logger:log(args)
+  --   end,
+  -- })
+  -- autocmd('CmdwinLeave', {
+  --   group = group,
+  --   pattern = 'CmdWindow',
+  --   callback = function(args)
+  --     logger:log(args)
+  --   end,
+  -- })
 end
 
 return M

@@ -8,7 +8,6 @@ function M.get_default_config()
     },
     win_opts = {
       title = ' title ',
-      title_pos = 'center',
       relative = 'editor',
       border = 'rounded',
       width = 140,
