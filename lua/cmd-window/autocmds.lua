@@ -15,27 +15,27 @@ function M.start_autocmds(win_opts)
   autocmd('CmdwinEnter', {
     group = group,
     callback = function(args)
-      -- Close the default command window
-      vim.cmd(':q')
-
-      -- Must delay a bit to avoid error.
-      vim.schedule(function()
-        if args.file == '?' or args.file == '/' then
-          ui._create_window(win_opts, 'search')
-        else
-          ui._create_window(win_opts, 'command')
-        end
-      end)
+      local buf = vim.api.nvim_get_current_buf()
+      if vim.bo[buf].buftype == 'nofile' then
+        vim.cmd(':q')
+        vim.schedule(function()
+          if args.file == '?' or args.file == '/' then
+            ui._create_window(win_opts, 'search')
+          else
+            ui._create_window(win_opts, 'command')
+          end
+        end)
+      end
     end,
   })
 
-  -- autocmd('CmdlineEnter', {
-  --   group = group,
-  --   pattern = 'CmdWindow',
-  --   callback = function(args)
-  --     logger:log(args)
-  --   end,
-  -- })
+  autocmd('CmdlineEnter', {
+    group = group,
+    pattern = 'CmdWindow',
+    callback = function(args)
+      logger:log(args)
+    end,
+  })
   -- autocmd('CmdwinLeave', {
   --   group = group,
   --   pattern = 'CmdWindow',
@@ -43,6 +43,13 @@ function M.start_autocmds(win_opts)
   --     logger:log(args)
   --   end,
   -- })
+  autocmd('TextChangedP', {
+    group = group,
+    -- pattern = 'CmdWindow',
+    callback = function(args)
+      logger:log(args)
+    end,
+  })
 end
 
 return M

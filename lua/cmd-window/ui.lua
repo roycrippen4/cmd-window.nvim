@@ -38,12 +38,14 @@ function ui._create_window(win_opts, kind)
     contents = data.display_history_data(kind)
     title = kind .. ' history'
   else
+    if kind == 'normal_search' then
+      vim.api.nvim_exec_autocmds(
+        'CmdlineEnter',
+        { group = 'CmdWindow', pattern = 'CmdWindow', data = 'search' }
+      )
+    end
     title = ''
   end
-  -- vim.api.nvim_exec_autocmds(
-  --   'CmdwinLeave',
-  --   { group = 'CmdWindow', pattern = 'CmdWindow', data = 'exiting' }
-  -- )
 
   ui.win_id = require('plenary.popup').create(contents, {
     relative = win_opts.relative,
@@ -61,6 +63,7 @@ function ui._create_window(win_opts, kind)
     borderhighlight = 'CmdWindowBorder',
     titlehighlight = 'CmdWindowTitle',
   })
+  ui.is_open = true
 
   map('n', 'q', function()
     ui._close()
