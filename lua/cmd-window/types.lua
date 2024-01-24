@@ -1,32 +1,39 @@
----@alias title_pos "left"|"center"|"right".
----@alias border "none"|"single"|"double"|"rounded"|"solid"|"shadow"
----@alias relative "editor"|"win"|"cursor"|"mouse"
----@alias DataType 'command'|'search'
----@alias WinType 'command'|'search'|'normal_cmd'|'normal_search'
+---@alias TitlePosition "left"|"center"|"right".
+---@alias BorderStyle "none"|"single-h"|"single-l"|"double"|"rounded"|"solid"
+---@alias WindowType 'cmd'|'search'
 
----@class WinOpts
----@field title_pos? title_pos Title position value passed to nvim_open_win
----@field relative? relative Where to open the window. Passed into nvim_open_win
----@field border? border Border value passed to nvim_open_win
----@field width? integer Width value passed to nvim_open_win
----@field height? integer Height value passed to nvim_open_win
+---@class HistoryDisplayOpts
+---@field cmd? DisplayOpts
+---@field search? DisplayOpts
 
----@class UI
----@field win_id integer
----@field bufnr integer
----@field win_opts WinOpts
----@field kind WinType
+---@class Title
+---@field text? string The title text.
+---@field pos? TitlePosition Position of the title.
+---@field hl? string Highlight group for the title.
+
+---@class Border
+---@field style? BorderStyle The styling for the border.
+---@field hl? string Highlight group for the border.
+
+---@class DisplayOpts
+---@field title? Title Table of title settings.
+---@field border? Border Table of border settings.
+---@field row? integer The start row for the window.
+---@field col? integer The start col for the window.
+---@field width? integer Width value passed to nvim_open_win.
+---@field height? integer Height value passed to nvim_open_win.
+
+---@class Display
+---@field cmdline? DisplayOpts
+---@field search? DisplayOpts
+---@field history? HistoryDisplayOpts
 
 ---@class PartialConfig
----@field win_opts? WinOpts
----@field opts? table|nil
+---@field opts? PluginOptions
 
----@class Opts
+---@class PluginOptions
 ---@field debug? boolean
-
----@class CmdWindowOptions
----@field win_opts WinOpts
----@field opts Opts
+---@field display? Display
 
 ---@class DataItem
 ---@field cmd string

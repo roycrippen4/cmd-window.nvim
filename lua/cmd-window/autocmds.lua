@@ -10,44 +10,19 @@ M = {}
 --- If you press `:` after, no matter how long you have waited, the default cmdline-win will open.
 --- We listen for the CmdwinEnter event and close the default upon it firing.
 --- We also open our window.
----@param win_opts WinOpts
-function M.start_autocmds(win_opts)
+---@param display_opts Display
+function M.start_autocmds(display_opts)
   autocmd('CmdwinEnter', {
     group = group,
     callback = function(args)
-      local buf = vim.api.nvim_get_current_buf()
-      if vim.bo[buf].buftype == 'nofile' then
-        vim.cmd(':q')
-        vim.schedule(function()
-          if args.file == '?' or args.file == '/' then
-            ui:__create_window(win_opts, 'search')
-          else
-            ui:__create_window(win_opts, 'command')
-          end
-        end)
-      end
-    end,
-  })
-
-  autocmd('CmdlineEnter', {
-    group = group,
-    pattern = 'CmdWindow',
-    callback = function(args)
-      logger:log(args)
-    end,
-  })
-  -- autocmd('CmdwinLeave', {
-  --   group = group,
-  --   pattern = 'CmdWindow',
-  --   callback = function(args)
-  --     logger:log(args)
-  --   end,
-  -- })
-  autocmd('TextChangedP', {
-    group = group,
-    -- pattern = 'CmdWindow',
-    callback = function(args)
-      logger:log(args)
+      vim.cmd('q')
+      vim.schedule(function()
+        if args.file == '?' or args.file == '/' then
+          ui:__create_window(display_opts.history.search, 'search', true)
+        else
+          ui:__create_window(display_opts.history.cmd, 'cmd', true)
+        end
+      end)
     end,
   })
 end

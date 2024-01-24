@@ -24,43 +24,35 @@ local parse_history = function(entry)
 end
 
 -- Loads history
----@param kind WinType
-local load_history = function(kind)
-  local exe = ''
-
-  if kind == 'command' then
-    exe = 'cmd'
-  else
-    exe = kind
-  end
-
-  local data_string = assert(vim.fn.execute('history ' .. exe), 'History is empty')
+---@param cmd_type WindowType
+local load_history = function(cmd_type)
+  local data_string = assert(vim.fn.execute('history ' .. cmd_type), 'History is empty')
   local data_list = vim.split(data_string, '\n')
 
   for i = 3, #data_list do
     local idx, cmd = parse_history(data_list[i])
-    cache_item(idx, cmd, kind)
+    cache_item(idx, cmd, cmd_type)
   end
 end
 
----@param kind WinType
+---@param type WindowType
 ---@return string[]
-function data.display_history_data(kind)
+function data.display_history_data(type)
   local items = {}
 
-  if kind == 'normal_cmd' or kind == 'normal_search' then
+  if type == 'cmd' or type == 'search' then
     return { '' }
   end
 
-  if #data[kind] == 0 then
-    load_history(kind)
+  if #data[type] == 0 then
+    load_history(type)
   end
 
-  for i = 1, #data[kind] do
-    items[i] = data[kind][i]['cmd']
+  for i = 1, #data[type] do
+    items[i] = data[type][i]['cmd']
   end
 
-  items[#data[kind] + 1] = ''
+  items[#data[type] + 1] = ''
   return items
 end
 

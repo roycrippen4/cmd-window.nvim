@@ -1,17 +1,78 @@
 local M = {}
+local w_width = 170
+local w_height = 20
+local width = 50
+local height = 1
 
----@return CmdWindowOptions
+---@return PluginOptions
 function M.get_default_config()
-  return {
+  return { ---@type PluginOptions
     opts = {
       debug = true,
     },
-    win_opts = {
-      title = ' title ',
-      relative = 'editor',
-      border = 'rounded',
-      width = 170,
-      height = 20,
+    display = {
+      cmdline = {
+        title = {
+          text = ' Command ',
+          pos = 'center',
+          hl = 'CmdWindowTitle',
+        },
+        border = {
+          style = 'rounded',
+          hl = 'CmdWindowBorder',
+        },
+        row = math.floor(((vim.o.lines - height) / 2) - 1),
+        col = math.floor((vim.o.columns - width) / 2),
+        width = width,
+        height = height,
+      },
+      search = {
+        title = {
+          text = ' Search ',
+          pos = 'center',
+          hl = 'CmdWindowTitle',
+        },
+        border = {
+          style = 'rounded',
+          hl = 'CmdWindowBorder',
+        },
+        row = math.floor(((vim.o.lines - height) / 2) - 1),
+        col = math.floor((vim.o.columns - width) / 2),
+        width = width,
+        height = height,
+      },
+      history = {
+        cmd = {
+          title = {
+            text = ' Command History ',
+            pos = 'center',
+            hl = 'CmdWindowTitle',
+          },
+          border = {
+            style = 'rounded',
+            hl = 'CmdWindowBorder',
+          },
+          row = math.floor(((vim.o.lines - w_height) / 2) - 1),
+          col = math.floor((vim.o.columns - w_width) / 2),
+          width = w_width,
+          height = w_height,
+        },
+        search = {
+          title = {
+            text = ' Search History ',
+            pos = 'center',
+            hl = 'CmdWindowTitle',
+          },
+          border = {
+            style = 'rounded',
+            hl = 'CmdWindowBorder',
+          },
+          row = math.floor(((vim.o.lines - w_height) / 2) - 1),
+          col = math.floor((vim.o.columns - w_width) / 2),
+          width = w_width,
+          height = w_height,
+        },
+      },
     },
   }
 end
@@ -21,7 +82,7 @@ end
 ---@param partial_config? PartialConfig User configuration for |cmd-window|
 ---      - win_opts: The available window options for |nvim-win-open|
 ---      - options: NOT IMPLEMENTED YET
----@return CmdWindowOptions
+---@return PluginOptions
 function M.merge_config(partial_config)
   partial_config = partial_config or {}
   local config = M.get_default_config()

@@ -7,110 +7,123 @@ local get_lines = vim.api.nvim_buf_get_lines
 local feedkeys = vim.fn.feedkeys
 
 ---@class UI
-local ui = {}
+---@field win_id integer
+---@field bufnr integer
+---@field display DisplayOpts
+---@field history boolean
+---@field open boolean
+---@field is_closing boolean
+local UI = {}
 
-ui.__index = ui
+UI.__index = UI
 
----@param win_opts WinOpts
-function ui:new(win_opts)
+---@param opts Display
+---@param type WindowType
+---@param show_history boolean
+local function get_specific_opts(opts, type, show_history)
+  if show_history then
+    return opts.history[type]
+  end
+
+  if type == 'cmd' then
+    return opts.cmdline
+  end
+
+  return opts.search
+end
+
+---@param opts Display
+---@param type WindowType
+---@param show_history boolean
+function UI:new(opts, type, show_history)
+  local display_opts = get_specific_opts(opts, type, show_history)
   return setmetatable({
     win_id = nil,
     bufnr = nil,
-    kind = nil,
-    win_opts = win_opts,
+    type = type,
+    display = display_opts,
+    history = show_history,
   }, self)
 end
 
 local function create_highlights()
-  vim.api.nvim_set_hl(0, 'CmdWindowBorder', { fg = '#FF00FF' })
-  vim.api.nvim_set_hl(0, 'CmdWindowTitle', { fg = '#000000', bg = '#FF00FF' })
+  vim.api.nvim_set_hl(0, 'CmdWindowBorder', { fg = '#2fffff' })
+  vim.api.nvim_set_hl(
+    0,
+    'CmdWindowTitle',
+    { fg = '#000000', bg = '#2fffff', bold = true, italic = true }
+  )
 end
 
-function ui:__apply_settings()
-  if not string.find(self.kind, 'normal') then
+function UI:__apply_settings()
+  if self.history then
     vim.wo[self.win_id].number = true
   else
     vim.cmd('set nonumber')
   end
-  vim.bo[self.bufnr].filetype = 'vim'
+
+  -- vim.bo[self.bufnr].filetype = 'vim'
   vim.api.nvim_win_set_cursor(self.win_id, { vim.fn.line('$'), 0 })
-  vim.cmd('normal A')
   vim.cmd('startinsert')
 
   create_highlights()
 end
 
-function ui:__set_keymaps()
+function UI:__set_keymaps()
   map('n', 'q', function()
-    ui:close()
+    self:close()
   end, map_opts)
 
   map({ 'n', 'i' }, '<Esc>', function()
-    ui:close()
+    self:close()
   end, map_opts)
 
   map({ 'n', 'i' }, '<CR>', function()
-    ui:select(self.kind)
+    self:select()
   end, map_opts)
 end
 
----@param icon string The icon to show
----@param icon_hl_group string The highlight
-local function set_virt_text(icon, icon_hl_group) end
+-- ---@param icon string The icon to show
+-- ---@param icon_hl_group string The highlight
+-- local function set_virt_text(icon, icon_hl_group) end
 
----@return string title
----@return string[] contents
-function ui:_get_content()
-  local title = ''
-  local contents = { '' }
+---@param opts DisplayOpts
+---@param type WindowType
+---@param show_history? boolean
+function UI:__create_window(opts, type, show_history)
+  self.show_history = show_history
+  self.type = type
+  local content = data.display_history_data(self.type)
 
-  if self.kind ~= 'normal_cmd' and self.kind ~= 'normal_search' then
-    contents = data.display_history_data(self.kind)
-    title = self.kind .. ' history'
-  else
-    if self.kind == 'normal_search' then
-      vim.api.nvim_exec_autocmds(
-        'CmdlineEnter',
-        { group = 'CmdWindow', pattern = 'CmdWindow', data = 'search' }
-      )
-    end
-    title = ''
-  end
-  return title, contents
-end
-
----@param win_opts WinOpts
----@param kind WinType
-function ui:__create_window(win_opts, kind)
-  self.kind = kind
-  local title, contents = ui:_get_content()
-
-  local win_id = require('plenary.popup').create(contents, {
-    relative = win_opts.relative,
-    title = title,
-    title_pos = win_opts.title_pos,
-    focusable = true,
-    row = math.floor(((vim.o.lines - win_opts.height) / 2) - 1),
-    col = math.floor((vim.o.columns - win_opts.width) / 2),
-    width = win_opts.width,
-    height = win_opts.height,
-    maxwidth = win_opts.width,
-    maxheight = win_opts.height,
+  local win_id = require('plenary.popup').create(content, {
+    relative = 'editor',
+    title = opts.title.text,
+    title_pos = opts.title.pos,
+    titlehighlight = opts.title.hl,
+    row = opts.row,
+    col = opts.col,
+    width = opts.width,
+    height = opts.height,
+    maxwidth = opts.width,
+    maxheight = opts.height,
     style = 'minimal',
-    borderchars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' },
-    borderhighlight = 'CmdWindowBorder',
-    titlehighlight = 'CmdWindowTitle',
+    focusable = true,
+    borderchars = utils.convert_border(opts.border.style),
+    borderhighlight = opts.border.hl,
   })
-  local bufnr = vim.api.nvim_get_current_buf()
-  self.win_id = win_id
-  self.bufnr = bufnr
 
-  ui:__set_keymaps()
-  ui:__apply_settings()
+  self.win_id = win_id
+  self.bufnr = vim.api.nvim_get_current_buf()
+  self:__set_keymaps()
+  self:__apply_settings()
 end
 
-function ui:close()
-  self.closing = true
+function UI:close()
+  if self.is_closing then
+    return
+  end
+
+  self.is_closing = true
   if self.bufnr ~= nil and vim.api.nvim_buf_is_valid(self.bufnr) then
     vim.api.nvim_buf_delete(self.bufnr, { force = true })
   end
@@ -121,19 +134,19 @@ function ui:close()
 
   self.win_id = nil
   self.bufnr = nil
+  self.is_closing = false
   vim.cmd('stopinsert')
 end
 
 --- Executes the line the cursor is on.
---- @param kind WinType
-function ui:select(kind)
+function UI:select()
   local line = vim.fn.line('.')
   ---@diagnostic disable-next-line
-  local command = get_lines(ui.bufnr, line - 1, line, false)[1]
+  local command = get_lines(self.bufnr, line - 1, line, false)[1]
 
-  ui:close()
+  self:close()
 
-  if kind == 'search' or kind == 'normal_search' then
+  if self.type == 'search' then
     command = 'let @/=' .. '"' .. command .. '"'
     utils.pcall(vim.cmd, command)
 
@@ -144,4 +157,4 @@ function ui:select(kind)
   utils.pcall(vim.cmd, command)
 end
 
-return ui
+return UI
