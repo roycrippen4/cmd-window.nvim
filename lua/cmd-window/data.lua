@@ -24,9 +24,8 @@ local parse_history = function(entry)
 end
 
 -- Loads history
----@param kind Kind
+---@param kind WinType
 local load_history = function(kind)
-  logger:log(kind)
   local exe = ''
 
   if kind == 'command' then
@@ -44,7 +43,7 @@ local load_history = function(kind)
   end
 end
 
----@param kind Kind
+---@param kind WinType
 ---@return string[]
 function data.display_history_data(kind)
   local items = {}

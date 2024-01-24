@@ -10,7 +10,7 @@ function M.get_default_config()
       title = ' title ',
       relative = 'editor',
       border = 'rounded',
-      width = 140,
+      width = 170,
       height = 20,
     },
   }

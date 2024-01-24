@@ -15,9 +15,9 @@ function M.setup(opts)
   end
 end
 
----@param kind Kind
+---@param kind WinType
 function M.open_window(kind)
-  ui._create_window(M.config.win_opts, kind)
+  ui:__create_window(M.config.win_opts, kind)
 end
 
 return M

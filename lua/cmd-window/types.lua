@@ -2,7 +2,7 @@
 ---@alias border "none"|"single"|"double"|"rounded"|"solid"|"shadow"
 ---@alias relative "editor"|"win"|"cursor"|"mouse"
 ---@alias DataType 'command'|'search'
----@alias Kind 'command'|'search'|'normal_cmd'|'normal_search'
+---@alias WinType 'command'|'search'|'normal_cmd'|'normal_search'
 
 ---@class WinOpts
 ---@field title_pos? title_pos Title position value passed to nvim_open_win
@@ -15,7 +15,7 @@
 ---@field win_id integer
 ---@field bufnr integer
 ---@field win_opts WinOpts
----@field is_open boolean
+---@field kind WinType
 
 ---@class PartialConfig
 ---@field win_opts? WinOpts

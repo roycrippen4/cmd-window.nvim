@@ -20,9 +20,9 @@ function M.start_autocmds(win_opts)
         vim.cmd(':q')
         vim.schedule(function()
           if args.file == '?' or args.file == '/' then
-            ui._create_window(win_opts, 'search')
+            ui:__create_window(win_opts, 'search')
           else
-            ui._create_window(win_opts, 'command')
+            ui:__create_window(win_opts, 'command')
           end
         end)
       end
