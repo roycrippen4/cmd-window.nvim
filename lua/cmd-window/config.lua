@@ -22,7 +22,7 @@ function M.get_default_config()
           hl = 'CmdWindowBorder',
         },
         prompt = {
-          icon = '',
+          icon = ' ',
           hl = 'CmdWindowPrompt',
         },
         -- row = math.floor(((vim.o.lines - height) / 2) - 1),
@@ -43,10 +43,11 @@ function M.get_default_config()
           hl = 'CmdWindowBorder',
         },
         prompt = {
-          icon = '',
+          icon = ' ',
           hl = 'CmdWindowPrompt',
         },
-        row = math.floor(((vim.o.lines - height) / 2) - 1),
+        -- row = math.floor(((vim.o.lines - height) / 2) - 1),
+        row = 5,
         col = math.floor((vim.o.columns - width) / 2),
         width = width,
         height = height,
