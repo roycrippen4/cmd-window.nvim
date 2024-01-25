@@ -1,5 +1,5 @@
 local M = {}
-local w_width = 170
+local w_width = 100
 local w_height = 20
 local width = 50
 local height = 1
@@ -21,7 +21,13 @@ function M.get_default_config()
           style = 'rounded',
           hl = 'CmdWindowBorder',
         },
-        row = math.floor(((vim.o.lines - height) / 2) - 1),
+        prompt = {
+          icon = '',
+          hl = 'CmdWindowPrompt',
+        },
+        -- row = math.floor(((vim.o.lines - height) / 2) - 1),
+        -- col = math.floor((vim.o.columns - width) / 2),
+        row = 5,
         col = math.floor((vim.o.columns - width) / 2),
         width = width,
         height = height,
@@ -35,6 +41,10 @@ function M.get_default_config()
         border = {
           style = 'rounded',
           hl = 'CmdWindowBorder',
+        },
+        prompt = {
+          icon = '',
+          hl = 'CmdWindowPrompt',
         },
         row = math.floor(((vim.o.lines - height) / 2) - 1),
         col = math.floor((vim.o.columns - width) / 2),
@@ -52,6 +62,10 @@ function M.get_default_config()
             style = 'rounded',
             hl = 'CmdWindowBorder',
           },
+          prompt = {
+            icon = '',
+            hl = 'CmdWindowPrompt',
+          },
           row = math.floor(((vim.o.lines - w_height) / 2) - 1),
           col = math.floor((vim.o.columns - w_width) / 2),
           width = w_width,
@@ -66,6 +80,10 @@ function M.get_default_config()
           border = {
             style = 'rounded',
             hl = 'CmdWindowBorder',
+          },
+          prompt = {
+            icon = '',
+            hl = 'CmdWindowPrompt',
           },
           row = math.floor(((vim.o.lines - w_height) / 2) - 1),
           col = math.floor((vim.o.columns - w_width) / 2),

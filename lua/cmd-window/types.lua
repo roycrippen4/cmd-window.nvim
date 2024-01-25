@@ -15,6 +15,10 @@
 ---@field style? BorderStyle The styling for the border.
 ---@field hl? string Highlight group for the border.
 
+---@class Prompt
+---@field icon? string Icon for the prompt.
+---@field hl? string Highlight group for the icon.
+
 ---@class DisplayOpts
 ---@field title? Title Table of title settings.
 ---@field border? Border Table of border settings.
@@ -22,6 +26,7 @@
 ---@field col? integer The start col for the window.
 ---@field width? integer Width value passed to nvim_open_win.
 ---@field height? integer Height value passed to nvim_open_win.
+---@field prompt? Prompt Icon/hl_group pair
 
 ---@class Display
 ---@field cmdline? DisplayOpts

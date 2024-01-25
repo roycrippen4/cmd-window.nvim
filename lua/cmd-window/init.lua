@@ -9,10 +9,9 @@ local M = {}
 function M.setup(opts)
   M.config = Config.merge_config(opts)
   start_autocmds(M.config.display)
-
-  if M.config.debug then
+  vim.defer_fn(function()
     logger:show()
-  end
+  end, 100)
 end
 
 --- Replaces the built-in command line
@@ -27,7 +26,7 @@ end
 
 --- Replaces the built-in search
 function M.search()
-  ui:__create_window(M.config.display.search, 'search', true)
+  ui:__create_window(M.config.display.search, 'search', false)
 end
 
 --- Replaces the built-in search history window

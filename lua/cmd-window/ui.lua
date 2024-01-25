@@ -7,43 +7,37 @@ local get_lines = vim.api.nvim_buf_get_lines
 local feedkeys = vim.fn.feedkeys
 
 ---@class UI
----@field win_id integer
----@field bufnr integer
----@field display DisplayOpts
----@field history boolean
----@field open boolean
----@field is_closing boolean
+---@field win_id integer Id for the UI window
+---@field bufnr integer Buffer number for the buffer inside the window
+---@field display DisplayOpts Window specific options
+---@field history boolean Show history or not
+---@field open boolean True if a UI window is open
+---@field is_closing boolean True during the UI:close() function
+---@field ns_id integer Hl group namespace used for virtual text in prompt
+---@field ext_id integer Extmark id for virtual text in prompt
 local UI = {}
 
 UI.__index = UI
 
----@param opts Display
----@param type WindowType
----@param show_history boolean
-local function get_specific_opts(opts, type, show_history)
-  if show_history then
-    return opts.history[type]
+function UI:__clear_virt()
+  logger:log('clearing virt text')
+  if self.is_closing then
+    vim.api.nvim_buf_del_extmark(0, self.ns_id, self.ext_id)
   end
-
-  if type == 'cmd' then
-    return opts.cmdline
-  end
-
-  return opts.search
 end
 
----@param opts Display
----@param type WindowType
----@param show_history boolean
-function UI:new(opts, type, show_history)
-  local display_opts = get_specific_opts(opts, type, show_history)
-  return setmetatable({
-    win_id = nil,
-    bufnr = nil,
-    type = type,
-    display = display_opts,
-    history = show_history,
-  }, self)
+---@param icon string The virtual icon
+---@param hl_group string Highlight group for the virtual text
+function UI:__draw_virt(icon, hl_group)
+  local line = vim.fn.line('$', self.win_id)
+  if not line then
+    error('UI:__draw_virt() -> Could not find a valid line.')
+  end
+
+  self.ext_id = vim.api.nvim_buf_set_extmark(0, self.ns_id, line - 1, 0, {
+    sign_text = icon,
+    sign_hl = hl_group,
+  })
 end
 
 local function create_highlights()
@@ -53,43 +47,45 @@ local function create_highlights()
     'CmdWindowTitle',
     { fg = '#000000', bg = '#2fffff', bold = true, italic = true }
   )
+  vim.api.nvim_set_hl(0, 'CmdWindowPrompt', { fg = '#897999' })
 end
 
-function UI:__apply_settings()
-  if self.history then
-    vim.wo[self.win_id].number = true
+---@param show_history boolean
+---@param win_id integer
+---@param icon integer
+---@param icon_hl integer
+local function apply_settings(show_history, win_id)
+  if show_history then
+    vim.wo[win_id].number = true
   else
     vim.cmd('set nonumber')
+    vim.wo[win_id].signcolumn = 'yes:1'
   end
 
   -- vim.bo[self.bufnr].filetype = 'vim'
-  vim.api.nvim_win_set_cursor(self.win_id, { vim.fn.line('$'), 0 })
+  vim.api.nvim_win_set_cursor(win_id, { vim.fn.line('$'), 0 })
   vim.cmd('startinsert')
 
   create_highlights()
 end
 
-function UI:__set_keymaps()
+local function set_keymaps()
   map('n', 'q', function()
-    self:close()
+    UI:close()
   end, map_opts)
 
   map({ 'n', 'i' }, '<Esc>', function()
-    self:close()
+    UI:close()
   end, map_opts)
 
   map({ 'n', 'i' }, '<CR>', function()
-    self:select()
+    UI:select()
   end, map_opts)
 end
 
--- ---@param icon string The icon to show
--- ---@param icon_hl_group string The highlight
--- local function set_virt_text(icon, icon_hl_group) end
-
 ---@param opts DisplayOpts
 ---@param type WindowType
----@param show_history? boolean
+---@param show_history boolean
 function UI:__create_window(opts, type, show_history)
   self.show_history = show_history
   self.type = type
@@ -100,7 +96,7 @@ function UI:__create_window(opts, type, show_history)
     title = opts.title.text,
     title_pos = opts.title.pos,
     titlehighlight = opts.title.hl,
-    row = opts.row,
+    line = opts.row,
     col = opts.col,
     width = opts.width,
     height = opts.height,
@@ -112,10 +108,13 @@ function UI:__create_window(opts, type, show_history)
     borderhighlight = opts.border.hl,
   })
 
+  self.open = true
   self.win_id = win_id
   self.bufnr = vim.api.nvim_get_current_buf()
-  self:__set_keymaps()
-  self:__apply_settings()
+  self.ns_id = vim.api.nvim_create_namespace('CmdWindow')
+  -- self:__draw_virt(opts.prompt.icon, opts.prompt.hl)
+  set_keymaps()
+  apply_settings(show_history, win_id, opts.prompt.icon, opts.prompt.hl)
 end
 
 function UI:close()
@@ -134,6 +133,7 @@ function UI:close()
 
   self.win_id = nil
   self.bufnr = nil
+  -- self:__clear_virt()
   self.is_closing = false
   vim.cmd('stopinsert')
 end

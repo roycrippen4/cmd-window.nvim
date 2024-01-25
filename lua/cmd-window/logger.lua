@@ -92,31 +92,19 @@ function Logger:clear()
 end
 
 function Logger:show()
-  if not self.bufnr or not vim.api.nvim_buf_is_loaded(self.bufnr) then
-    if os.getenv('DEBUG') == '1' then
-      vim.schedule(function()
-        vim.cmd([[
-          vsplit
-        ]])
-        vim.cmd([[
-        NvimTreeToggle
-        NvimTreeToggle
-        wincmd l
+  self.winnr = vim.api.nvim_get_current_win()
+  self.bufnr = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_name(self.bufnr, 'logger')
+  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, self.lines)
+  vim.api.nvim_win_set_buf(self.winnr, self.bufnr)
+  vim.bo[self.bufnr].ft = 'logger'
+
+  vim.cmd([[
         vsplit
         vertical resize 80
-        wincmd h
+        wincmd h 
     ]])
-        require('harpoon.ui').nav_file(1)
-      end)
-    end
-
-    self.winnr = vim.api.nvim_get_current_win()
-    self.bufnr = vim.api.nvim_create_buf(false, true)
-    vim.api.nvim_buf_set_name(self.bufnr, 'logger')
-    vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, self.lines)
-    vim.api.nvim_win_set_buf(self.winnr, self.bufnr)
-    vim.bo[self.bufnr].ft = 'logger'
-  end
+  require('harpoon.ui').nav_file(1)
 end
 
 return Logger:new()
