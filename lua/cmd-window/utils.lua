@@ -2,6 +2,14 @@ local logger = require('cmd-window.logger')
 
 M = {}
 
+---@return integer bufnr
+---@return integer win_id
+function M.get_win_info()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local win_id = vim.api.nvim_get_current_win()
+  return bufnr, win_id
+end
+
 ---@param ok boolean
 ---@param err unknown|nil
 local function handle_error(ok, err)

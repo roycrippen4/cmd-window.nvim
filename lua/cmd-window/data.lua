@@ -8,7 +8,7 @@ local data = {
 ---@param idx integer
 ---@param cmd string
 ---@param list string
-local cache_item = function(idx, cmd, list)
+data.cache_item = function(idx, cmd, list)
   table.insert(data[list], { id = idx, cmd = cmd })
 end
 
@@ -31,7 +31,7 @@ data.cache_history = function(type)
 
   for i = 3, #data_list do
     local idx, cmd = parse_history(data_list[i])
-    cache_item(idx, cmd, type)
+    data.cache_item(idx, cmd, type)
   end
 end
 

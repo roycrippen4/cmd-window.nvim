@@ -1,6 +1,8 @@
-local ui = require('cmd-window.ui')
+local UI = require('cmd-window.ui')
 local logger = require('cmd-window.logger')
 local Config = require('cmd-window.config')
+local Utils = require('cmd-window.utils')
+local Search = require('cmd-window.hlsearch')
 local start_autocmds = require('cmd-window.autocmds').start_autocmds
 
 local M = {}
@@ -16,22 +18,24 @@ end
 
 --- Replaces the built-in command line
 function M.cmdline()
-  ui:__create_window(M.config.display.cmdline, 'cmd', false)
+  UI:__create_window(M.config.display.cmdline, 'cmd', false)
 end
 
 --- Replaces the built-in command history window
 function M.cmdline_window()
-  ui:__create_window(M.config.display.history.cmd, 'cmd', true)
+  UI:__create_window(M.config.display.history.cmd, 'cmd', true)
 end
 
 --- Replaces the built-in search
 function M.search()
-  ui:__create_window(M.config.display.search, 'search', false)
+  Search.hl_search(Utils.get_win_info())
+  UI:__create_window(M.config.display.search, 'search', false)
 end
 
 --- Replaces the built-in search history window
 function M.search_window()
-  ui:__create_window(M.config.display.history.search, 'search', true)
+  Search.hl_search(Utils.get_win_info())
+  UI:__create_window(M.config.display.history.search, 'search', true)
 end
 
 return M

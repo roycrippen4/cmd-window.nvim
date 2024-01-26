@@ -1,7 +1,7 @@
-local data = require('cmd-window.data')
+-- local logger = require('cmd-window.logger')
+local Data = require('cmd-window.data')
 local feedkeys = vim.fn.feedkeys
 local get_lines = vim.api.nvim_buf_get_lines
-local logger = require('cmd-window.logger')
 local map = vim.keymap.set
 local map_opts = { buffer = 0, silent = true }
 local utils = require('cmd-window.utils')
@@ -14,7 +14,6 @@ local utils = require('cmd-window.utils')
 ---@field open boolean True if a UI window is open
 ---@field is_closing boolean True during the UI:close() function
 ---@field ns_id integer Hl group namespace used for virtual text in prompt
----@field ext_id integer Extmark id for virtual text in prompt
 local UI = {}
 
 UI.__index = UI
@@ -27,10 +26,12 @@ function UI:__set_signs(icon, hl_group)
     error('UI:__draw_virt() -> Could not find a valid line.')
   end
 
-  self.ext_id = vim.api.nvim_buf_set_extmark(0, self.ns_id, line - 1, 0, {
-    sign_text = icon,
-    sign_hl_group = hl_group,
-  })
+  for i = 1, line, 1 do
+    vim.api.nvim_buf_set_extmark(0, self.ns_id, i, 0, {
+      sign_text = icon,
+      sign_hl_group = hl_group,
+    })
+  end
 end
 
 local function set_highlights()
@@ -69,16 +70,32 @@ end
 
 ---@param show_history boolean
 ---@param win_id integer
+---@param bufnr integer
 ---@param icon string
 ---@param icon_hl string
-local function set_options(show_history, win_id, icon, icon_hl)
+local function set_options(show_history, win_id, bufnr, icon, icon_hl)
+  vim.wo[win_id].list = false
+  vim.wo[win_id].foldenable = false
+  vim.wo[win_id].spell = false
+  vim.wo[win_id].foldcolumn = '0'
+  vim.wo[win_id].cursorcolumn = false
+  vim.wo[win_id].colorcolumn = '0'
+  vim.wo[win_id].wrap = false
+  vim.bo[bufnr].swapfile = false
+  vim.bo[bufnr].buftype = 'nofile'
+  vim.bo[bufnr].bufhidden = 'wipe'
+  vim.bo[bufnr].buflisted = false
+
   if show_history then
     vim.wo[win_id].number = true
+    vim.bo[bufnr].filetype = 'CmdWindow'
   else
-    vim.cmd('set nonumber')
+    vim.wo[win_id].number = false
     vim.wo[win_id].signcolumn = 'yes:1'
     UI:__set_signs(icon, icon_hl)
   end
+
+  vim.bo.ft = 'CmdWindow'
   vim.api.nvim_win_set_cursor(win_id, { vim.fn.line('$'), 0 })
   vim.cmd('startinsert')
 end
@@ -90,7 +107,7 @@ end
 ---@param icon string
 ---@param icon_hl string
 local function apply_settings(show_history, win_id, bufnr, type, icon, icon_hl)
-  set_options(show_history, win_id, icon, icon_hl)
+  set_options(show_history, win_id, bufnr, icon, icon_hl)
   set_highlights()
   set_keymaps()
   set_syntax(type, bufnr)
@@ -102,7 +119,7 @@ end
 function UI:__create_window(opts, type, show_history)
   self.show_history = show_history
   self.type = type
-  local content = data.display_history_data(type)
+  local content = Data.display_history_data(type)
 
   local win_id = require('plenary.popup').create(content, {
     relative = 'editor',
@@ -161,10 +178,14 @@ function UI:select()
     utils.pcall(vim.cmd, command)
 
     feedkeys('n', 'n')
+    vim.fn.histadd('search', command)
+    Data.cache_item(#Data.search + 1, command, 'search')
     return
   end
 
   utils.pcall(vim.cmd, command)
+  vim.fn.histadd('cmd', command)
+  Data.cache_item(#Data.cmd + 1, command, 'cmd')
 end
 
 return UI
