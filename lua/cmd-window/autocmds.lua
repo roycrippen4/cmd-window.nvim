@@ -36,21 +36,5 @@ function M.start_autocmds(display_opts)
       end
     end,
   })
-
-  autocmd({ 'TextChangedI', 'CursorMoved' }, {
-    group = group,
-    callback = function()
-      if vim.bo.ft == 'CmdWindow' then
-        local win_id = vim.api.nvim_get_current_win()
-        local current_line = vim.fn.line('.', win_id)
-
-        if current_line and UI.type == 'search' then
-          -- local search = 'let @/=' .. '"' .. vim.fn.getline(current_line) .. '"'
-          logger:log(current_line)
-          -- Utils.pcall(vim.cmd, search)
-        end
-      end
-    end,
-  })
 end
 return M

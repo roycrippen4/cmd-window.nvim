@@ -1,4 +1,5 @@
 local logger = require('cmd-window.logger')
+local UI = require('cmd-window.ui')
 
 local M = {}
 
@@ -66,6 +67,22 @@ end
 ---@param win_id integer window id
 function M.hl_search(bufnr, win_id)
   vim.on_key(callback(bufnr, win_id), vim.api.nvim_create_namespace('auto_hlsearch'))
+
+  -- This is kinda close to what I need
+  -- vim.api.nvim_create_autocmd({ 'TextChangedI', 'CursorMoved' }, {
+  --   group = vim.api.nvim_create_augroup('CmdWindowHlSearch', { clear = true }),
+  --   callback = function()
+  --     if vim.bo.ft == 'CmdWindow' then
+  --       local cmd_win_id = vim.api.nvim_get_current_win()
+  --       local current_line = vim.fn.line('.', cmd_win_id)
+
+  --       if current_line and UI.type == 'search' then
+  --         local search = vim.fn.getline(current_line)
+  --         vim.fn.matchadd('CurSearch', search, _, -1, { window = win_id })
+  --       end
+  --     end
+  --   end,
+  -- })
 end
 
 return M
