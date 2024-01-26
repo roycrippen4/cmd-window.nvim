@@ -102,7 +102,7 @@ end
 function UI:__create_window(opts, type, show_history)
   self.show_history = show_history
   self.type = type
-  local content = data.display_history_data(self.type)
+  local content = data.display_history_data(type)
 
   local win_id = require('plenary.popup').create(content, {
     relative = 'editor',

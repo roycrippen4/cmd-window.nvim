@@ -1,7 +1,7 @@
 local logger = require('cmd-window.logger')
 
 local data = {
-  command = {},
+  cmd = {},
   search = {},
 }
 
@@ -24,14 +24,14 @@ local parse_history = function(entry)
 end
 
 -- Loads history
----@param cmd_type WindowType
-local load_history = function(cmd_type)
-  local data_string = assert(vim.fn.execute('history ' .. cmd_type), 'History is empty')
+---@param type WindowType
+data.cache_history = function(type)
+  local data_string = assert(vim.fn.execute('history ' .. type), 'History is empty')
   local data_list = vim.split(data_string, '\n')
 
   for i = 3, #data_list do
     local idx, cmd = parse_history(data_list[i])
-    cache_item(idx, cmd, cmd_type)
+    cache_item(idx, cmd, type)
   end
 end
 
@@ -40,12 +40,8 @@ end
 function data.display_history_data(type)
   local items = {}
 
-  if type == 'cmd' or type == 'search' then
-    return { '' }
-  end
-
   if #data[type] == 0 then
-    load_history(type)
+    data.cache_history(type)
   end
 
   for i = 1, #data[type] do
