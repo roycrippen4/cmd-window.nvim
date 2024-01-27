@@ -1,4 +1,4 @@
--- local logger = require('cmd-window.logger')
+local logger = require('cmd-window.logger')
 local Data = require('cmd-window.data')
 local feedkeys = vim.fn.feedkeys
 local get_lines = vim.api.nvim_buf_get_lines
@@ -58,7 +58,7 @@ local function set_keymaps()
   end, map_opts)
 end
 
----@param type WindowType
+---@param type ListType
 ---@param bufnr integer
 local function set_syntax(type, bufnr)
   if type == 'cmd' then
@@ -103,7 +103,7 @@ end
 ---@param show_history boolean
 ---@param win_id integer
 ---@param bufnr integer
----@param type WindowType
+---@param type ListType
 ---@param icon string
 ---@param icon_hl string
 local function apply_settings(show_history, win_id, bufnr, type, icon, icon_hl)
@@ -114,12 +114,13 @@ local function apply_settings(show_history, win_id, bufnr, type, icon, icon_hl)
 end
 
 ---@param opts DisplayOpts
----@param type WindowType
+---@param type ListType
 ---@param show_history boolean
 function UI:__create_window(opts, type, show_history)
   self.show_history = show_history
   self.type = type
-  local content = Data.display_history_data(type)
+  local content = Data[type].items
+  -- logger:log(content)
 
   local win_id = require('plenary.popup').create(content, {
     relative = 'editor',
@@ -170,22 +171,22 @@ function UI:select()
   local line = vim.fn.line('.')
   ---@diagnostic disable-next-line
   local command = get_lines(self.bufnr, line - 1, line, false)[1]
-
+  --- TODO: Put more thought into how to ensure execution of commands
+  --- only occurs outside of the UI buffer
   self:close()
 
   if self.type == 'search' then
+    --- HACK: this definitely needs a better solution.
     command = 'let @/=' .. '"' .. command .. '"'
     utils.pcall(vim.cmd, command)
 
     feedkeys('n', 'n')
-    vim.fn.histadd('search', command)
-    Data.cache_item(#Data.search + 1, command, 'search')
+    Data.list_add(command, 'search')
     return
   end
 
   utils.pcall(vim.cmd, command)
-  vim.fn.histadd('cmd', command)
-  Data.cache_item(#Data.cmd + 1, command, 'cmd')
+  Data.list_add(command, 'cmd')
 end
 
 return UI

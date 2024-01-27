@@ -1,5 +1,6 @@
 local autocmd = vim.api.nvim_create_autocmd
 local group = vim.api.nvim_create_augroup('CmdWindow', { clear = true })
+local Data = require('cmd-window.data')
 local UI = require('cmd-window.ui')
 local Search = require('cmd-window.hlsearch')
 local Utils = require('cmd-window.utils')
@@ -14,6 +15,7 @@ M = {}
 --- We also open our window.
 ---@param display_opts Display
 function M.start_autocmds(display_opts)
+  logger:log('autocmds started')
   autocmd('CmdwinEnter', {
     group = group,
     callback = function(args)
@@ -29,10 +31,19 @@ function M.start_autocmds(display_opts)
   })
 
   autocmd('BufLeave', {
+    pattern = '*',
     group = group,
     callback = function()
       if Search.searching then
         Search.clear()
+      end
+    end,
+  })
+
+  autocmd('BufLeave', {
+    group = group,
+    callback = function(args)
+      if vim.bo[args.buf].ft == 'CmdWindow' then
       end
     end,
   })

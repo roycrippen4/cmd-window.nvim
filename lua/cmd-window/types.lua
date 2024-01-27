@@ -1,6 +1,6 @@
 ---@alias TitlePosition "left"|"center"|"right".
 ---@alias BorderStyle "none"|"single-h"|"single-l"|"double"|"rounded"|"solid"
----@alias WindowType 'cmd'|'search'
+---@alias ListType 'cmd'|'search'
 
 ---@class HistoryDisplayOpts
 ---@field cmd? DisplayOpts
@@ -40,14 +40,12 @@
 ---@field debug? boolean
 ---@field display? Display
 
----@class DataItem
----@field cmd string
----@field id integer
-
----@class item
----@field id integer
----@field cmd string
+---@class List
+---@field items string[]
+---@field path string
 
 ---@class Data
----@field command item[]
----@field search item[]
+---@field cmd List
+---@field search List
+---@field files_exist boolean
+---@field dir_exists boolean

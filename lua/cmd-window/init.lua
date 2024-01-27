@@ -1,6 +1,7 @@
 local UI = require('cmd-window.ui')
 local logger = require('cmd-window.logger')
 local Config = require('cmd-window.config')
+local Data = require('cmd-window.data')
 local Utils = require('cmd-window.utils')
 local Search = require('cmd-window.hlsearch')
 local start_autocmds = require('cmd-window.autocmds').start_autocmds
@@ -11,6 +12,7 @@ local M = {}
 function M.setup(opts)
   M.config = Config.merge_config(opts)
   start_autocmds(M.config.display)
+  Data.setup()
   vim.defer_fn(function()
     logger:show()
   end, 100)
